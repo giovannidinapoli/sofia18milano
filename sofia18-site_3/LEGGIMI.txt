@@ -1,0 +1,19 @@
+COME PUBBLICARE L'INVITO (2 minuti, gratis)
+============================================
+
+1. Vai su  https://app.netlify.com/drop  (funziona anche dal telefono, meglio dal computer)
+   - Non serve creare un account per la prova; per tenere il sito attivo te ne chiede uno gratuito.
+
+2. Trascina DENTRO la pagina l'intera cartella "sofia18-site" (contiene index.html e sofia-18-cover.png).
+
+3. Netlify ti da' subito un link. Vai su "Site settings > Change site name"
+   e scrivi:  sofia18milano
+   Il link diventa:  https://sofia18milano.netlify.app
+
+4. Gli RSVP arrivano via WhatsApp al numero +41 79 758 62 63 (gia' configurato).
+   Se scegliete un nome sito diverso da "sofia18milano", dite a Claude il link
+   definitivo cosi' aggiorna i meta-tag dell'anteprima WhatsApp.
+
+5. Condividi su WhatsApp il link https://sofia18milano.netlify.app
+   L'anteprima mostrera' la copertina della festa di Sofia (non il logo Claude),
+   e chiunque potra' aprire l'invito e rispondere SENZA nessun account.
