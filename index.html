@@ -95,6 +95,7 @@ h1 .num{
 .btn:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(242,169,195,.4);}
 .btn:focus-visible{outline:2px solid var(--cream);outline-offset:3px;}
 .btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--line);box-shadow:none;}
+.btn[disabled]{opacity:.35;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
 
 /* skyline + wire + tram */
 .skyline{position:absolute;left:0;right:0;bottom:64px;z-index:1;pointer-events:none;}
@@ -474,7 +475,7 @@ footer .display{font-size:24px;color:var(--dim);letter-spacing:.08em;text-transf
       <div class="card fade"><div class="ic">🧥</div><h4>Weather</h4>
         <p>Late October in Milan is cool after dark — <b>bring a jacket</b> for the hops between tram, restaurant and transfer.</p></div>
       <div class="card fade" style="grid-column:1/-1;border-color:rgba(242,169,195,.4);"><div class="ic">📝</div><h4>Consent form — required</h4>
-        <p>For the tram ride and the transfer, every guest needs a <b>consent form signed by a parent or legal representative</b>. It will arrive <b>by email after you confirm</b> your RSVP. <b>Without the signed form, you can't join</b> — so please return it quickly.</p></div>
+        <p>For the tram ride and the transfer, every guest needs <b>two consent forms signed by a parent or legal representative</b>. You download them <b>during the RSVP</b> and send them on WhatsApp <b>together with your confirmation</b>. <b>Without the signed forms, you can't join</b> — so please return them by 10 October.</p></div>
     </div>
   </section>
 
@@ -499,12 +500,25 @@ footer .display{font-size:24px;color:var(--dim);letter-spacing:.08em;text-transf
         <textarea id="notes" placeholder="Optional"></textarea>
         <button class="btn rsvp-submit" id="submitBtn" type="button">Send my RSVP</button>
         <p class="err" id="err"></p>
-        <p class="fineprint">Your RSVP opens in WhatsApp already written — just press send. Your email is used only to send you the consent form.</p>
+        <p class="fineprint">Next step: you’ll download the consent forms, then send your confirmation and the signed forms together on WhatsApp.</p>
       </form>
+      <div id="step2" style="display:none;">
+        <p class="display" style="font-size:30px;color:#F2A9C3;text-align:center;">One last step 📝</p>
+        <p style="color:var(--dim);font-size:14.5px;text-align:center;margin-top:8px;">Your confirmation travels together with the signed consent forms. Three quick steps:</p>
+        <div style="margin-top:18px;background:rgba(242,169,195,.07);border:1px solid rgba(242,169,195,.3);border-radius:14px;padding:20px 18px;">
+          <p style="font-size:14px;color:var(--cream);"><b style="color:#F2A9C3;">1.</b> Download the two consent forms (tram party + transfer)</p>
+          <div style="text-align:center;margin:14px 0 18px;"><a class="btn ghost" id="dlBtn" href="sofia18-consent-forms.pdf" target="_blank" style="font-size:13px;padding:12px 26px;">Download the forms (PDF)</a></div>
+          <p style="font-size:14px;color:var(--cream);"><b style="color:#F2A9C3;">2.</b> Have them signed by a parent or legal representative</p>
+          <p class="fineprint" style="text-align:left;margin:4px 0 16px;">Tip: on iPhone you can fill and sign the PDF with Markup — no printer needed.</p>
+          <p style="font-size:14px;color:var(--cream);"><b style="color:#F2A9C3;">3.</b> Send your confirmation with the signed forms attached</p>
+          <div style="text-align:center;margin-top:14px;"><button class="btn" id="waBtn" type="button" disabled>Open WhatsApp — send RSVP + forms</button></div>
+          <p class="fineprint" style="margin-top:12px;">In WhatsApp, attach the photos (or the PDF) of the signed pages before pressing send. Need time for the signatures? Download now and come back any time — your spot is confirmed when your message with the forms arrives, no later than 10 October.</p>
+        </div>
+        <div style="text-align:center;margin-top:16px;"><button class="btn ghost" id="backBtn" type="button" style="font-size:12px;padding:11px 22px;">Edit my details</button></div>
+      </div>
       <div class="done" id="done">
         <p class="display" id="doneTitle">Ci vediamo a Milano! 🎉</p>
         <p id="doneMsg"></p>
-        <p class="fineprint" style="margin-top:14px;">Changed plans? Submit again with the same name to update.</p>
         <div id="fallbackWrap" style="display:none;margin-top:18px;text-align:left;">
           <label>WhatsApp didn’t open? Copy this message and send it to Sofia’s family:</label>
           <textarea id="fallbackMsg" readonly style="min-height:100px;font-size:13px;"></textarea>
@@ -637,7 +651,7 @@ const yesBtn=document.getElementById('yesBtn'),noBtn=document.getElementById('no
       submitBtn=document.getElementById('submitBtn'),againBtn=document.getElementById('againBtn'),
       err=document.getElementById('err'),form=document.getElementById('rsvpForm'),
       done=document.getElementById('done');
-let attending=null;
+let attending=null,pendingMsg='',pendingFirst='';
 yesBtn.addEventListener('click',()=>{attending=true;yesBtn.classList.add('on-yes');noBtn.classList.remove('on-no');});
 noBtn.addEventListener('click',()=>{attending=false;noBtn.classList.add('on-no');yesBtn.classList.remove('on-yes');});
 
@@ -648,21 +662,41 @@ submitBtn.addEventListener('click',()=>{
   const notes=document.getElementById('notes').value.trim();
   if(!name){err.textContent='Please add your name.';err.style.display='block';return;}
   if(attending===null){err.textContent='Please choose yes or no.';err.style.display='block';return;}
-  if(attending===true&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='Please add a valid email — we need it to send you the consent form.';err.style.display='block';return;}
-  const msg='🎉 RSVP — Sofia 18 · 30 October\n'
+  if(attending===true&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent='Please add a valid email.';err.style.display='block';return;}
+  pendingMsg='🎉 RSVP — Sofia 18 · 30 October\n'
     +'Name: '+name+'\n'
     +(email?('Email: '+email+'\n'):'')
     +'Coming: '+(attending?'YES ✅':'NO ❌')
-    +(notes?('\nNotes: '+notes):'');
-  window.open('https://wa.me/'+ORGANIZER_WHATSAPP+'?text='+encodeURIComponent(msg),'_blank');
-  form.style.display='none';done.style.display='block';
-  const first=name.split(' ')[0];
-  document.getElementById('doneTitle').textContent=attending?'Ci vediamo a Milano! 🎉':'You\u2019ll be missed 💛';
-  document.getElementById('doneMsg').textContent=attending
-    ?'WhatsApp just opened with your RSVP, '+first+' — press send and you\u2019re on the list. Then watch your inbox: the parental consent form arrives by email and must be signed before the party.'
-    :'WhatsApp just opened with your reply, '+first+' — press send so Sofia knows.';
-  document.getElementById('fallbackMsg').value=msg;
+    +(notes?('\nNotes: '+notes):'')
+    +(attending?'\n📎 Attached: the signed consent forms (tram + transfer)':'');
+  pendingFirst=name.split(' ')[0];
+  if(attending===false){
+    window.open('https://wa.me/'+ORGANIZER_WHATSAPP+'?text='+encodeURIComponent(pendingMsg),'_blank');
+    form.style.display='none';done.style.display='block';
+    document.getElementById('doneTitle').textContent='You\u2019ll be missed 💛';
+    document.getElementById('doneMsg').textContent='WhatsApp just opened with your reply, '+pendingFirst+' — press send so Sofia knows.';
+    document.getElementById('fallbackMsg').value=pendingMsg;
+    document.getElementById('fallbackWrap').style.display='block';
+    return;
+  }
+  form.style.display='none';
+  document.getElementById('step2').style.display='block';
+});
+document.getElementById('dlBtn').addEventListener('click',()=>{
+  const w=document.getElementById('waBtn');
+  w.disabled=false;
+});
+document.getElementById('waBtn').addEventListener('click',()=>{
+  window.open('https://wa.me/'+ORGANIZER_WHATSAPP+'?text='+encodeURIComponent(pendingMsg),'_blank');
+  document.getElementById('step2').style.display='none';
+  done.style.display='block';
+  document.getElementById('doneTitle').textContent='Ci vediamo a Milano! 🎉';
+  document.getElementById('doneMsg').textContent='Press send in WhatsApp, '+pendingFirst+' — and make sure the photos of the signed forms are attached to the message. That completes your registration. Transfer leaves TASIS at 5:00 PM sharp on Friday 30 October.';
+  document.getElementById('fallbackMsg').value=pendingMsg;
   document.getElementById('fallbackWrap').style.display='block';
+});
+document.getElementById('backBtn').addEventListener('click',()=>{
+  document.getElementById('step2').style.display='none';form.style.display='block';
 });
 againBtn.addEventListener('click',()=>{done.style.display='none';form.style.display='block';});
 </script>
